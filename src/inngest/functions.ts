@@ -42,7 +42,7 @@ export const dispatcher = inngest.createFunction(
 
 /** Executes one skill and records the run. */
 export const runSkill = inngest.createFunction(
-  { id: 'run-skill', concurrency: 8, triggers: [{ event: EVENTS.RUN_REQUESTED }] },
+  { id: 'run-skill', concurrency: 5, triggers: [{ event: EVENTS.RUN_REQUESTED }] },
   async ({ event, step }) => {
     const { skillId, source } = event.data as {
       skillId: string;
