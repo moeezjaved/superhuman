@@ -33,3 +33,13 @@ create table if not exists knowledge_chunks (
 create index if not exists kb_ws on knowledge_chunks(workspace_id);
 -- cosine similarity index (build after some rows exist for best results):
 create index if not exists kb_vec on knowledge_chunks using hnsw (embedding vector_cosine_ops);
+
+create table if not exists connections (
+  id            text primary key,
+  workspace_id  text not null,
+  provider      text not null,
+  connection_id text not null,
+  created_at    timestamptz not null default now(),
+  unique (workspace_id, provider)
+);
+create index if not exists conn_ws on connections(workspace_id);

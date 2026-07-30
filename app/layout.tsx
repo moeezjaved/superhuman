@@ -22,6 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <a href="/activity">Activity</a>
               <a href="/chat">Ask</a>
               <a href="/knowledge">Knowledge</a>
+              <a href="/connections">Connections</a>
             </nav>
             <div style={{ marginTop: 'auto', fontSize: 12, color: 'var(--fg-3)' }}>
               {user ? (
