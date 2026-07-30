@@ -23,11 +23,8 @@ export const SuggestionSchema = z.object({
 });
 export type Suggestion = z.infer<typeof SuggestionSchema>['suggestions'][number];
 
-export async function discoverOpportunities(input: { connectedProviders: string[]; note?: string }): Promise<Suggestion[]> {
-  const hits = await retrieve(
-    input.note || 'what this business does, who its customers are, and its repetitive recurring work',
-    6,
-  );
+export async function discoverOpportunities(input: { connectedProviders: string[]; note?: string; workspaceId?: string }): Promise<Suggestion[]> {
+  const hits = await retrieve(input.note || 'what this business does, who its customers are, and its repetitive recurring work', 6, input.workspaceId ?? 'ws_demo');
   const ctx = hits.map((h) => `(${h.source}) ${h.text}`).join('\n\n') || '(no company knowledge yet)';
   const { connected, supported } = catalogForWorkspace(new Set(input.connectedProviders));
   const caps = [...connected, ...supported].map((a) => a.id).join(', ');
