@@ -14,9 +14,19 @@ export default function ActivityPage() {
     setLoading(false);
   }
   useEffect(() => {
+    let t: ReturnType<typeof setInterval> | null = null;
+    // Only poll while the tab is actually visible — no Supabase reads for a
+    // backgrounded/hidden tab. Resume (and refresh once) when it comes back.
+    const start = () => { if (!t) t = setInterval(load, 10000); };
+    const stop = () => { if (t) { clearInterval(t); t = null; } };
+    const onVis = () => {
+      if (document.visibilityState === 'visible') { load(); start(); }
+      else stop();
+    };
     load();
-    const t = setInterval(load, 4000); // live: autonomous runs appear here
-    return () => clearInterval(t);
+    if (document.visibilityState === 'visible') start();
+    document.addEventListener('visibilitychange', onVis);
+    return () => { stop(); document.removeEventListener('visibilitychange', onVis); };
   }, []);
 
   const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleString() : '');

@@ -10,10 +10,27 @@ const CONNECTORS = [
   { id: 'notion', label: 'Notion', emoji: '📝' },
 ];
 
+const INGESTABLE = new Set(['slack', 'notion']);
+
 export default function ConnectionsPage() {
   const [connected, setConnected] = useState<string[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [ingesting, setIngesting] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+
+  async function ingest(id: string, label: string) {
+    setIngesting(id); setMsg('Reading your ' + label + '… this can take a moment.');
+    try {
+      const r = await (await fetch('/api/ingest', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ provider: id }),
+      })).json();
+      if (r.error) throw new Error(r.error);
+      setMsg(`Learned from ${label}: ${r.sources} source(s), ${r.chunks} chunks. Go to Ask and query your company →`);
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : 'ingest failed');
+    } finally { setIngesting(null); }
+  }
 
   async function load() {
     const d = await (await fetch('/api/connections', { cache: 'no-store' })).json();
@@ -62,7 +79,14 @@ export default function ConnectionsPage() {
               <span style={{ fontSize: 22 }}>{c.emoji}</span>
               <strong style={{ flex: 1 }}>{c.label}</strong>
               {isOn
-                ? <span className="status-pill status-succeeded">connected</span>
+                ? <>
+                    {INGESTABLE.has(c.id) && (
+                      <button className="btn ghost" onClick={() => ingest(c.id, c.label)} disabled={ingesting === c.id}>
+                        {ingesting === c.id ? 'Reading…' : 'Learn from this'}
+                      </button>
+                    )}
+                    <span className="status-pill status-succeeded">connected</span>
+                  </>
                 : <button className="btn" onClick={() => connect(c.id, c.label)} disabled={busy === c.id}>{busy === c.id ? '…' : 'Connect'}</button>}
             </div>
           );
