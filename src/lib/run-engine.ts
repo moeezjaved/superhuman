@@ -196,6 +196,36 @@ function finalize(run: Run): Run {
   return run;
 }
 
+/**
+ * Resume a run that suspended at an approval gate, applying the human's decision.
+ *
+ * The gate the user just decided is honored; any *later* gate defers again (so a
+ * multi-approval skill comes back to the inbox for each decision). Run identity
+ * (id, skill, source, start time) is preserved so Activity shows one run
+ * progressing, not a fork. In stub mode re-executing earlier steps is harmless;
+ * the durable (Inngest) version will replay from the gate instead.
+ */
+export async function resumeRun(
+  skill: SkillDraft,
+  prior: Run,
+  decision: { stepOrd: number; decision: 'approved' | 'rejected' },
+  opts: Omit<RunOptions, 'approve' | 'params'>,
+): Promise<Run> {
+  const next = await executeRun(skill, {
+    ...opts,
+    params: prior.params,
+    approve: async (req) =>
+      req.stepOrd === decision.stepOrd ? decision.decision : 'defer',
+  });
+  // preserve identity so the inbox/activity track the same run
+  next.id = prior.id;
+  next.skillId = prior.skillId;
+  next.skillName = prior.skillName ?? skill.name;
+  next.source = prior.source;
+  next.startedAt = prior.startedAt;
+  return next;
+}
+
 /** Rough ROI estimate: ~4 min saved per executed write/compute step. Real version
  *  learns per-skill from realized vs estimated (doc 25). */
 function estimateHoursSaved(skill: SkillDraft): number {

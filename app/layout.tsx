@@ -19,6 +19,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <a href="/">Build a skill</a>
               <a href="/discover">Discover</a>
               <a href="/skills">Skills</a>
+              <a href="/approvals">Approvals</a>
               <a href="/activity">Activity</a>
               <a href="/chat">Ask</a>
               <a href="/knowledge">Knowledge</a>

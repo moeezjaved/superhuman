@@ -46,6 +46,10 @@ export const store = {
     }
     const db = await rf(); const i = db.runs.findIndex(r => r.id === run.id); if (i >= 0) db.runs[i] = run; else db.runs.push(run); await wf(db);
   },
+  async getRun(id: string): Promise<Run | undefined> {
+    if (hasDb) { const rows = await q<{ data: Run }>(`select data from runs where id=$1 limit 1`, [id]); return rows[0]?.data; }
+    const db = await rf(); return db.runs.find(r => r.id === id);
+  },
   async listRuns(workspaceId = 'ws_demo', limit = 100): Promise<Run[]> {
     if (hasDb) { const rows = await q<{ data: Run }>(`select data from runs where workspace_id=$1 order by started_at desc nulls last limit $2`, [workspaceId, limit]); return rows.map(r => r.data); }
     const db = await rf(); return db.runs.filter(r => r.workspaceId === workspaceId).sort((a, b) => (b.startedAt ?? '').localeCompare(a.startedAt ?? '')).slice(0, limit);
