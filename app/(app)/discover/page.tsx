@@ -40,11 +40,11 @@ export default function DiscoverPage() {
 
   return (
     <main className="pane" style={{ gridColumn: '1 / -1', maxWidth: 900 }}>
-      <h1>Discover automations</h1>
-      <p className="sub">Cortex mines what it knows about your business and proposes tailored skills — only ones it can actually build.</p>
+      <h1>Ideas for you</h1>
+      <p className="sub">Based on what it’s learned about your business, HiUnicorn suggests jobs worth handing off — only ones it can actually do for you.</p>
 
       <div className="composer">
-        <textarea placeholder="Optional: describe a typical day or your most repetitive work (helps Cortex tailor suggestions)…"
+        <textarea placeholder="Optional: tell me about a typical day, or the work that repeats most — it helps me suggest better…"
           value={note} onChange={(e) => setNote(e.target.value)} style={{ minHeight: 70 }} />
         <div className="bar"><button className="btn" onClick={discover} disabled={busy}>{busy ? 'Mining your business…' : '✨ Find opportunities'}</button></div>
       </div>
@@ -63,7 +63,7 @@ export default function DiscoverPage() {
             <div style={{ fontSize: 13, marginTop: 8 }}><strong>It would:</strong> {s.description}</div>
             <div style={{ marginTop: 8 }}><span className="trigger-badge">⏱ {s.suggestedTrigger}</span></div>
             <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button className="btn" onClick={() => createSkill(i, s)} disabled={!!status[i]}>+ Create this skill</button>
+              <button className="btn" onClick={() => createSkill(i, s)} disabled={!!status[i]}>Hire for this</button>
               {status[i] && <span style={{ fontSize: 13, color: 'var(--accent-600)' }}>{status[i]}</span>}
             </div>
           </div>

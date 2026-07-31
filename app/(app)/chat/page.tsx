@@ -83,7 +83,7 @@ export default function ChatPage() {
         <h1 style={{ margin: 0 }}>Ask about your company</h1>
         {known && (
           totalChunks > 0
-            ? <span className="status-pill status-succeeded">Cortex knows {sources.length} source{sources.length > 1 ? 's' : ''} · {totalChunks} chunks</span>
+            ? <span className="status-pill status-succeeded">Knows your business from {sources.length} place{sources.length > 1 ? 's' : ''}</span>
             : <span className="status-pill" style={{ background: 'var(--slate-100)', color: 'var(--fg-3)' }}>nothing learned yet</span>
         )}
       </div>
@@ -92,7 +92,7 @@ export default function ChatPage() {
       <div ref={scroller} style={{ flex: 1, overflow: 'auto', paddingRight: 8, maxWidth: 820 }}>
         {messages.length === 0 && known && totalChunks === 0 && (
           <div className="preview-empty" style={{ textAlign: 'left' }}>
-            <strong>Cortex doesn’t know your business yet.</strong>
+            <strong>I don’t know your business yet.</strong>
             <div style={{ marginTop: 8, color: 'var(--fg-2)' }}>
               Teach it in one of two ways, then come back and ask:
               <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>

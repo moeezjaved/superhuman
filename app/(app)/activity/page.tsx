@@ -33,14 +33,14 @@ export default function ActivityPage() {
 
   return (
     <main className="pane" style={{ gridColumn: '1 / -1' }}>
-      <h1>Activity</h1>
-      <p className="sub">Every run your AI team has done — scheduled, triggered, or manual. Refreshes live.</p>
+      <h1>Everything your team has done</h1>
+      <p className="sub">A full record of every job your teammates have handled — with a receipt for each one. Updates on its own.</p>
 
       {loading && <div className="loading">Loading…</div>}
       {!loading && runs.length === 0 && (
-        <div className="preview-empty" style={{ textAlign: 'left' }}>
-          No runs yet. Save a skill with a schedule and it will start appearing here on its own —
-          or hit “Run now” from Skills.
+        <div className="empty">
+          <strong>Nothing here yet.</strong>
+          Once you <a href="/build">hire a teammate</a>, everything they do shows up here — what they did, and when.
         </div>
       )}
 

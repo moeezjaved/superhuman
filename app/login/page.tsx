@@ -33,9 +33,9 @@ export default function LoginPage() {
   return (
     <div style={{ position: 'fixed', inset: 0, display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
       <div style={{ width: 360, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', boxShadow: 'var(--shadow-2)', padding: 32 }}>
-        <div className="brand" style={{ marginBottom: 6 }}><span className="dot" /> Cortex</div>
-        <h1 style={{ fontSize: 22, margin: '10px 0 4px' }}>{mode === 'in' ? 'Welcome back' : 'Create your account'}</h1>
-        <p className="sub" style={{ marginBottom: 20, fontSize: 14 }}>Your AI operations platform.</p>
+        <div className="brand" style={{ marginBottom: 6 }}><span className="dot" /> HiUnicorn</div>
+        <h1 style={{ margin: '10px 0 4px' }}>{mode === 'in' ? 'Welcome back' : 'Let’s get started'}</h1>
+        <p className="sub" style={{ marginBottom: 20, fontSize: 14 }}>Your business, running.</p>
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <input type="email" required placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} style={inp} />
           <input type="password" required placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} style={inp} />

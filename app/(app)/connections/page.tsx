@@ -55,7 +55,7 @@ export default function ConnectionsPage() {
               method: 'POST', headers: { 'content-type': 'application/json' },
               body: JSON.stringify({ provider: payload.providerConfigKey || id, connectionId: payload.connectionId }),
             });
-            setMsg(`Connected ${label} ✓ — Cortex can now learn from it.`);
+            setMsg(`Connected ${label} ✓ — HiUnicorn can now learn from it.`);
             load();
           }
         },
@@ -69,7 +69,7 @@ export default function ConnectionsPage() {
   return (
     <main className="pane" style={{ gridColumn: '1 / -1', maxWidth: 760 }}>
       <h1>Connections</h1>
-      <p className="sub">Connect your tools. Cortex learns from them and your skills can read + act on them.</p>
+      <p className="sub">Connect the apps you already use. HiUnicorn learns from them, and your teammates can read and act on them for you.</p>
       {msg && <div className="warn" style={{ background: 'var(--accent-050)', borderColor: 'var(--accent)', color: 'var(--accent-600)' }}>{msg}</div>}
       <div style={{ marginTop: 16 }}>
         {CONNECTORS.map((c) => {

@@ -27,7 +27,7 @@ export default function KnowledgePage() {
   return (
     <main className="pane" style={{ gridColumn: '1 / -1', maxWidth: 820 }}>
       <h1>Knowledge</h1>
-      <p className="sub">Teach Cortex about your business. It embeds this and grounds every answer in it.</p>
+      <p className="sub">Tell HiUnicorn about your business. It remembers everything here and uses it in every answer.</p>
 
       <div className="composer" style={{ marginBottom: 14 }}>
         <input placeholder="Source name (e.g. About page, Pricing)" value={name} onChange={(e) => setName(e.target.value)}
@@ -44,7 +44,7 @@ export default function KnowledgePage() {
 
       {msg && <div className="warn" style={{ background: 'var(--accent-050)', borderColor: 'var(--accent)', color: 'var(--accent-600)' }}>{msg}</div>}
 
-      <h3 style={{ marginTop: 24, fontSize: 14, color: 'var(--fg-2)' }}>What Cortex knows ({sources.length} sources)</h3>
+      <h3 style={{ marginTop: 24, fontSize: 14, color: 'var(--fg-2)' }}>What HiUnicorn knows ({sources.length})</h3>
       {sources.map((s, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '10px 14px', marginTop: 8, background: 'var(--surface)' }}>
           <span>{s.source}</span><span style={{ color: 'var(--fg-3)', fontSize: 13 }}>{s.chunks} chunks</span>
