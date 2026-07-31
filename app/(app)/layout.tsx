@@ -35,7 +35,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           ) : <a href="/login" style={{ fontSize: 13, color: 'var(--graphite)' }}>Sign in</a>}
         </div>
       </aside>
+      {/* mobile top bar */}
+      <div className="mobiletop">
+        <a href="/home" className="brand" style={{ margin: 0 }}><span className="dot" /> HiUnicorn</a>
+        <ThemeToggle />
+      </div>
+
       <div className="main">{children}</div>
+
+      {/* mobile bottom tabs — the pager */}
+      <nav className="mobilebar" aria-label="Main">
+        {[
+          { href: '/home', label: 'Home' },
+          { href: '/approvals', label: 'Approvals' },
+          { href: '/chat', label: 'Ask' },
+          { href: '/skills', label: 'Team' },
+          { href: '/settings', label: 'More' },
+        ].map((n) => <a key={n.href} href={n.href}>{n.label}</a>)}
+      </nav>
     </div>
   );
 }

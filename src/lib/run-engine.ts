@@ -17,6 +17,7 @@
 import type { SkillDraft, Run, RunStep, ApprovalRequest } from './types';
 import type { ToolExecutor, ToolContext } from './tools';
 import { getAtomic } from './capabilities';
+import { amountFromInput } from './settings-store';
 
 // 'defer' = suspend the run at this gate (autonomous runs leave risky actions
 // for a human — the run persists as awaiting_approval and resumes on decision).
@@ -46,6 +47,8 @@ export interface RunOptions {
   onEvent?: (e: RunEvent) => void;
   /** In demos we don't actually sleep for days. In prod (Inngest) this is false. */
   simulateWaits?: boolean;
+  /** The owner's money rules (from Settings). Enforced per step when an amount is present. */
+  policy?: { autoApproveUnder: number; askOver: number };
 }
 
 let _seq = 0;
@@ -106,8 +109,20 @@ export async function executeRun(skill: SkillDraft, opts: RunOptions): Promise<R
 
       // 3) write action — enforce governance (defense in depth)
       const atomic = getAtomic(step.action);
-      const needsApproval =
+      let needsApproval =
         step.approval === 'require_approval' || (!!atomic?.irreversible && step.approval !== 'auto');
+
+      // The owner's money rules (Settings) refine the decision when the step
+      // carries an amount: force a human over the ask-limit; auto-clear small
+      // amounts that were only gated for being irreversible. An explicit
+      // require_approval is never auto-cleared — the owner asked for the gate.
+      if (opts.policy) {
+        const amount = amountFromInput(step.input);
+        if (amount != null) {
+          if (amount >= opts.policy.askOver) needsApproval = true;
+          else if (amount < opts.policy.autoApproveUnder && step.approval !== 'require_approval') needsApproval = false;
+        }
+      }
 
       if (step.approval === 'deny') {
         rec.status = 'canceled';

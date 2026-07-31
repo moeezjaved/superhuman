@@ -17,6 +17,7 @@ import { store } from '../lib/store';
 import { executeRun } from '../lib/run-engine';
 import { RealToolExecutor } from '../lib/tools';
 import { cronMatches } from '../lib/cron';
+import { getSettings } from '../lib/settings-store';
 
 /** Fires scheduled skills automatically. Runs every minute. */
 export const dispatcher = inngest.createFunction(
@@ -52,12 +53,15 @@ export const runSkill = inngest.createFunction(
     const skill = await step.run('load-skill', () => store.getSkill(skillId));
     if (!skill) return { error: 'skill not found', skillId };
 
+    const policy = await step.run('load-policy', () => getSettings(skill.workspaceId));
+
     const run = await executeRun(skill, {
       workspaceId: skill.workspaceId,
       executor: new RealToolExecutor(),
       // autonomous: do the safe work, DEFER risky (require_approval) actions to a human
       approve: async () => 'defer',
       simulateWaits: false,
+      policy, // the owner's money rules from Settings
     });
 
     run.skillId = skill.id;

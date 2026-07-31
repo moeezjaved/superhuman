@@ -8,17 +8,27 @@ export default function SettingsClient({ email }: { email: string }) {
   const [autoUnder, setAutoUnder] = useState('50');
   const [askOver, setAskOver] = useState('500');
   const [saved, setSaved] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const a = localStorage.getItem('hu-auto-under'); if (a) setAutoUnder(a);
-    const o = localStorage.getItem('hu-ask-over'); if (o) setAskOver(o);
+    fetch('/api/settings', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => { if (d.settings) { setAutoUnder(String(d.settings.autoApproveUnder)); setAskOver(String(d.settings.askOver)); } })
+      .catch(() => {});
   }, []);
 
-  function saveRules() {
-    localStorage.setItem('hu-auto-under', autoUnder);
-    localStorage.setItem('hu-ask-over', askOver);
-    const t = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setSaved(`Saved ${t}`);
+  async function saveRules() {
+    setSaving(true); setSaved(null);
+    try {
+      await fetch('/api/settings', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ autoApproveUnder: Number(autoUnder || 0), askOver: Number(askOver || 0) }),
+      });
+      const t = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      setSaved(`Saved ${t} · your team follows these now`);
+    } catch {
+      setSaved('Couldn’t save — try again');
+    } finally { setSaving(false); }
   }
 
   return (
@@ -41,7 +51,7 @@ export default function SettingsClient({ email }: { email: string }) {
           <Money value={askOver} onChange={setAskOver} />.
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6 }}>
-          <button className="btn" onClick={saveRules}>Save these rules</button>
+          <button className="btn" onClick={saveRules} disabled={saving}>{saving ? 'Saving…' : 'Save these rules'}</button>
           {saved && <span className="mono" style={{ fontSize: 12, color: 'var(--sage)' }}>{saved}</span>}
         </div>
         <p style={{ fontSize: 12.5, color: 'var(--faint)', marginTop: 12 }}>
