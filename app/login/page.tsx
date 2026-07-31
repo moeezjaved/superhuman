@@ -27,7 +27,7 @@ export default function LoginPage() {
     setBusy(false);
     if (error) { setMsg(error.message); return; }
     if (mode === 'up' && !data.session) { setMsg('Account created — check your email to confirm, then sign in.'); setMode('in'); return; }
-    router.push('/'); router.refresh();
+    router.push('/home'); router.refresh();
   }
 
   return (

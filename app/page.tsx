@@ -1,161 +1,208 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Run } from '@/lib/types';
+import { useState } from 'react';
 
-type Pending = {
-  runId: string; skillName: string; source: string; startedAt?: string;
-  gate: { stepOrd: number; label: string; action: string | null; provider: string | null };
-};
+export default function Landing() {
+  const [approved, setApproved] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
-export default function HomePage() {
-  const [pending, setPending] = useState<Pending[]>([]);
-  const [runs, setRuns] = useState<Run[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    try {
-      const [a, r] = await Promise.all([
-        fetch('/api/approvals', { cache: 'no-store' }).then((x) => x.json()),
-        fetch('/api/runs', { cache: 'no-store' }).then((x) => x.json()),
-      ]);
-      setPending(a.pending || []);
-      setRuns(r.runs || []);
-      setError(null);
-    } catch {
-      setError('I couldn’t reach your account just now. I’ll keep trying.');
-    } finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => {
-    let t: ReturnType<typeof setInterval> | null = null;
-    const start = () => { if (!t) t = setInterval(load, 15000); };
-    const stop = () => { if (t) { clearInterval(t); t = null; } };
-    const onVis = () => { if (document.visibilityState === 'visible') { load(); start(); } else stop(); };
-    load(); if (document.visibilityState === 'visible') start();
-    document.addEventListener('visibilitychange', onVis);
-    return () => { stop(); document.removeEventListener('visibilitychange', onVis); };
-  }, [load]);
-
-  async function decide(p: Pending, decision: 'approved' | 'rejected') {
-    setBusy(p.runId);
-    try {
-      const r = await fetch('/api/approvals', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ runId: p.runId, stepOrd: p.gate.stepOrd, decision }),
-      }).then((x) => x.json());
-      if (r.error) throw new Error(r.error);
-      setPending((l) => l.filter((x) => x.runId !== p.runId));
-      load();
-    } catch { /* keep it on screen; they can retry */ }
-    finally { setBusy(null); }
+  function toggleTheme() {
+    const el = document.documentElement;
+    const cur = el.getAttribute('data-theme');
+    const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches;
+    el.setAttribute('data-theme', dark ? 'light' : 'dark');
   }
 
-  const done = useMemo(
-    () => runs.filter((r) => r.status === 'succeeded').slice(0, 8),
-    [runs],
-  );
-  const hoursSaved = useMemo(
-    () => runs.reduce((n, r) => n + (r.hoursSaved ?? 0), 0),
-    [runs],
-  );
-
-  const today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
-  const time = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '');
-
   return (
-    <main className="pane">
-      <p className="dateline">{today} — here’s where things stand</p>
-      <h1>Your business, running.</h1>
-      <div className="rule heavy" />
+    <div className="lp">
+      <style>{CSS}</style>
 
-      {loading && <BriefSkeleton />}
+      <nav className="lp-nav">
+        <div className="lp-in">
+          <div className="lp-brand"><span className="lp-glyph" /><b>HiUnicorn</b></div>
+          <div className="lp-links">
+            <a href="#how">How it works</a>
+            <a href="#pricing">Pricing</a>
+            <a href="/login">Sign in</a>
+            <button className="lp-toggle" onClick={toggleTheme} aria-label="Toggle theme">◐</button>
+            <a href="/login" className="lp-btn ink sm">Start free</a>
+          </div>
+        </div>
+      </nav>
 
-      {!loading && error && (
-        <div className="error"><div className="what">Can’t load right now</div>{error}</div>
-      )}
-
-      {!loading && !error && (
-        <>
-          {/* NEEDS YOU */}
-          <section aria-live="polite">
-            <div className={`eyebrow ${pending.length ? '' : 'calm'}`}>
-              <span>Needs you</span>
-              {pending.length > 0 && <span className="count">{pending.length}</span>}
-              <span className="grow" />
+      <header className="lp-wrap">
+        <div className="lp-hero">
+          <div>
+            <div className="lp-eyebrow">Your AI team, for small business</div>
+            <h1 className="lp-h1">Your business,<br /><em>running.</em></h1>
+            <p className="lp-sub">HiUnicorn learns how your business works, then quietly does the busywork for you — and always asks before anything that matters.</p>
+            <div className="lp-cta">
+              <a href="/login" className="lp-btn ink lg">Start free</a>
+              <a href="#how" className="lp-btn ghost lg">See how it works</a>
             </div>
-            {pending.length === 0 ? (
-              <p style={{ fontFamily: 'var(--voice)', fontStyle: 'italic', fontSize: 18, color: 'var(--sage)' }}>
-                Nothing needs you right now. Enjoy it.
-              </p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {pending.map((p) => (
-                  <div className="approval" key={p.runId}>
-                    <div className="a-title">{p.skillName}</div>
-                    <div className="a-meta">{p.gate.label}{p.gate.provider ? ` · using ${p.gate.provider}` : ''}</div>
-                    <div className="a-flag">This one can’t be undone, so I stopped to check with you.</div>
-                    <div className="a-actions">
-                      <button className="btn" onClick={() => decide(p, 'approved')} disabled={busy === p.runId}>{busy === p.runId ? '…' : 'Yes, go ahead'}</button>
-                      <button className="btn ghost" onClick={() => decide(p, 'rejected')} disabled={busy === p.runId}>No, skip it</button>
-                    </div>
+            <p className="lp-note">No card needed · connect one app · see your first week of work in 3 minutes</p>
+          </div>
+
+          <div className="lp-demo" aria-label="A morning update you can try">
+            <div className="lp-demobar"><span className="lp-glyph sm" /><span className="lp-dt">This morning, while you were away</span></div>
+            <div className="lp-demobody">
+              <div className={`lp-lbl ${approved || dismissed ? 'calm' : ''}`}><span>Needs you</span>{!(approved || dismissed) && <span className="lp-n">1</span>}<span className="lp-g" /></div>
+              {!(approved || dismissed) ? (
+                <div className="lp-appr">
+                  <div className="h">Send a $214.00 refund to Jordan Chen?</div>
+                  <div className="m">order #2287 · bought 41 days ago · “arrived damaged”</div>
+                  <div className="f">This is past your 30-day rule, so I stopped to ask.</div>
+                  <div className="act">
+                    <button className="lp-mini ink" onClick={() => setApproved(true)}>Yes, refund</button>
+                    <button className="lp-mini ghost" onClick={() => setDismissed(true)}>Not now</button>
                   </div>
-                ))}
+                </div>
+              ) : (
+                <p className="lp-cleared"><span>✓</span> {approved ? 'Done. I sent the refund and replied to Jordan.' : 'Okay — I’ll leave it for you.'}</p>
+              )}
+
+              <div className="lp-lbl calm" style={{ marginTop: 16 }}><span>Already done today</span><span className="lp-g" /></div>
+              <div className="lp-led">
+                {approved && <div className="lp-r"><span className="t">10:42</span><span className="k">✓</span><span className="b">Refunded <span className="num">$214.00</span> — J. Chen <span className="dim">(you approved)</span></span></div>}
+                <div className="lp-r"><span className="t">09:02</span><span className="k">✓</span><span className="b">Refunded <span className="num">$42.10</span> — J. Meyer <span className="dim">(within your rules)</span></span></div>
+                <div className="lp-r"><span className="t">09:15</span><span className="k">✓</span><span className="b">Answered <span className="num">6</span> “where’s my order?” notes</span></div>
+                <div className="lp-r"><span className="t">09:48</span><span className="k">✓</span><span className="b">Chased <span className="num">2</span> unpaid invoices <span className="dim">— $1,340</span></span></div>
               </div>
-            )}
-          </section>
-
-          <div className="rule" />
-
-          {/* WHILE YOU WERE AWAY */}
-          <section>
-            <div className="eyebrow calm"><span>While you were away</span><span className="grow" /></div>
-            {done.length === 0 ? (
-              <div className="empty">
-                <strong>No work done yet.</strong>
-                Once you <a href="/build">hire a teammate</a> or <a href="/connections">connect an app</a>, everything they do shows up here — with a receipt for each one.
-              </div>
-            ) : (
-              <div>
-                {done.map((r) => (
-                  <div className="receipt done" key={r.id}>
-                    <span className="t">{time(r.startedAt)}</span>
-                    <span className="mark" aria-hidden>✓</span>
-                    <span className="body">{r.skillName ?? 'A teammate'} <span className="dim">— finished{r.hoursSaved ? `, saved about ${r.hoursSaved}h` : ''}</span></span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <div className="rule" />
-
-          {/* THIS WEEK */}
-          <section>
-            <div className="eyebrow calm"><span>So far</span><span className="grow" /></div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--voice)', fontSize: 40, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{hoursSaved ? hoursSaved.toFixed(1) : '0'}</span>
-              <span style={{ fontFamily: 'var(--voice)', fontStyle: 'italic', fontSize: 19, color: 'var(--graphite)' }}>hours handed back to you</span>
-              <a href="/activity" style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--graphite)', borderBottom: '1px solid var(--hairline-strong)' }}>see everything →</a>
             </div>
-          </section>
-        </>
-      )}
-    </main>
-  );
-}
+          </div>
+        </div>
+      </header>
 
-function BriefSkeleton() {
-  return (
-    <div>
-      <div className="skeleton skel-line" style={{ width: '30%', height: 10, marginTop: 20 }} />
-      <div className="skeleton skel-card" style={{ marginTop: 12 }} />
-      <div className="skeleton skel-line" style={{ width: '25%', height: 10, marginTop: 24 }} />
-      <div className="skeleton skel-line" style={{ width: '80%' }} />
-      <div className="skeleton skel-line" style={{ width: '70%' }} />
-      <div className="skeleton skel-line" style={{ width: '75%' }} />
+      <section id="how" className="lp-sec"><div className="lp-col">
+        <h2 className="lp-kick">Connect one app. It takes it from there.</h2>
+        <p className="lp-lead">You don’t set anything up or learn any tools. HiUnicorn reads how your business already runs, finds the work that repeats, and starts handling it — checking with you before anything it can’t take back.</p>
+      </div>
+      <div className="lp-col lp-loop">
+        <div className="lp-step"><span className="no">1</span><h3>It learns</h3><p>Reads your website, inbox and tools to understand how you work.</p></div>
+        <div className="lp-step"><span className="no">2</span><h3>It spots</h3><p>Finds the repeat work eating your week — and shows you the time it costs.</p></div>
+        <div className="lp-step"><span className="no">3</span><h3>It handles</h3><p>Does the safe parts itself. Pauses for your yes on anything that matters.</p></div>
+        <div className="lp-step"><span className="no">4</span><h3>It reports</h3><p>One calm update a day. Every line comes with proof of what it did.</p></div>
+      </div></section>
+
+      <section className="lp-sec"><div className="lp-col">
+        <h2 className="lp-kick">It works with the tools you already use.</h2>
+        <p className="lp-lead">Always inside limits you set — it never sends or spends without asking first.</p>
+        <div className="lp-chips">
+          {['Gmail', 'Slack', 'Shopify', 'Stripe', 'WhatsApp', 'HubSpot', 'Google Calendar', 'Notion', 'Dropbox'].map((c) => <span className="lp-chip" key={c}>{c}</span>)}
+          <span className="lp-chip more">+ hundreds more</span>
+        </div>
+      </div></section>
+
+      <section id="pricing" className="lp-sec"><div className="lp-col">
+        <h2 className="lp-kick">Simple pricing.</h2>
+        <p className="lp-lead">Start free. Only pay once HiUnicorn is saving you real hours.</p>
+      </div>
+      <div className="lp-col lp-tiers">
+        <div className="lp-tier">
+          <div className="nm">Free</div><div className="pr">$0</div>
+          <ul><li>Learns your business</li><li>One teammate</li><li>Daily update &amp; approvals</li><li>Connect one app</li></ul>
+          <a href="/login" className="lp-btn ghost">Start free</a>
+        </div>
+        <div className="lp-tier mark">
+          <div className="nm">Business</div><div className="pr">$149 <span>/ mo</span></div>
+          <ul><li>As many teammates as you need</li><li>Every app</li><li>Your rules &amp; who can approve</li><li>Full history you can export</li></ul>
+          <a href="/login" className="lp-btn ink">Start free trial</a>
+        </div>
+        <div className="lp-tier">
+          <div className="nm">Bigger teams</div><div className="pr">Let’s talk</div>
+          <ul><li>Company sign-in (SSO)</li><li>Read-only auditor access</li><li>Where your data lives</li><li>Dedicated help</li></ul>
+          <a href="/login" className="lp-btn ghost">Talk to us</a>
+        </div>
+      </div></section>
+
+      <div className="lp-wrap lp-final"><div className="lp-col">
+        <h2 className="lp-fh">Give yourself your evenings back.</h2>
+        <p className="lp-sub center">Connect one app and see your first week of work — found, costed, and ready to hand off — in three minutes.</p>
+        <div className="lp-cta center"><a href="/login" className="lp-btn ink lg">Start free</a></div>
+      </div></div>
+
+      <footer className="lp-foot">
+        <div className="lp-in">
+          <span>HiUnicorn — your business, running.</span>
+          <span style={{ display: 'flex', gap: 18 }}><a href="#">Security</a><a href="#">Privacy</a><a href="#">Contact</a></span>
+        </div>
+      </footer>
     </div>
   );
 }
+
+const CSS = `
+.lp{--m:720px;--w:1080px}
+.lp a{color:var(--ink)}
+.lp-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 84%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--hairline)}
+.lp-in{max-width:var(--w);margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.lp-brand{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:14px;font-weight:600}
+.lp-glyph{width:18px;height:18px;border-radius:6px;position:relative;background:conic-gradient(from 200deg,var(--iris-a),var(--iris-b) 40%,var(--iris-c) 72%,var(--iris-a));box-shadow:inset 0 0 0 1px var(--hairline-strong)}
+.lp-glyph.sm{width:11px;height:11px;border-radius:4px}
+.lp-glyph::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 32% 26%,#fff9 0 22%,transparent 40%)}
+.lp-links{display:flex;align-items:center;gap:22px}
+.lp-links a{color:var(--graphite);font-size:14px}.lp-links a:hover{color:var(--ink)}
+.lp-toggle{border:1px solid var(--hairline-strong);background:transparent;color:var(--graphite);width:32px;height:32px;border-radius:8px;cursor:pointer}
+.lp-btn{font-family:var(--ui);font-weight:500;font-size:14px;height:38px;padding:0 18px;border-radius:8px;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;transition:transform .12s var(--ease),background .12s var(--ease),border-color .12s var(--ease)}
+.lp-btn:active{transform:scale(.98)}
+.lp-btn.ink{background:var(--ink);color:var(--paper)}.lp-btn.ink:hover{background:color-mix(in srgb,var(--ink) 84%,var(--graphite))}
+.lp-btn.ghost{border-color:var(--hairline-strong);color:var(--ink)}.lp-btn.ghost:hover{border-color:var(--graphite)}
+.lp-btn.lg{height:46px;padding:0 24px;font-size:15px}.lp-btn.sm{height:34px}
+.lp-wrap{max-width:var(--w);margin:0 auto;padding:0 24px}
+.lp-col{max-width:var(--m);margin:0 auto}
+.lp-hero{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:64px 0 52px}
+.lp-eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:20px}
+.lp-h1{font-family:var(--voice);font-weight:400;letter-spacing:-.015em;font-size:clamp(40px,7vw,66px);line-height:1.03;text-wrap:balance}
+.lp-h1 em{font-style:italic;color:var(--ember)}
+.lp-sub{font-family:var(--voice);font-size:clamp(18px,2.3vw,22px);color:var(--graphite);max-width:32ch;margin:20px 0 28px;line-height:1.45}
+.lp-sub.center{margin-left:auto;margin-right:auto;text-align:center}
+.lp-cta{display:flex;gap:12px;flex-wrap:wrap}.lp-cta.center{justify-content:center}
+.lp-note{font-size:13px;color:var(--faint);margin-top:14px}
+.lp-demo{border:1px solid var(--hairline-strong);border-radius:14px;background:var(--raise);box-shadow:0 1px 0 var(--hairline),0 24px 60px -40px color-mix(in srgb,#000 60%,transparent);overflow:hidden}
+.lp-demobar{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--hairline)}
+.lp-dt{font-family:var(--voice);font-style:italic;font-size:13px;color:var(--faint)}
+.lp-demobody{padding:16px 18px 18px}
+.lp-lbl{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:2px 0 10px}
+.lp-n{font-family:var(--mono);font-weight:500;letter-spacing:0;color:var(--paper);background:var(--ember);border-radius:20px;padding:0 6px;font-size:9.5px}
+.lp-g{flex:1;height:1px;background:var(--hairline)}
+.lp-appr{border:1px solid var(--ember-line);background:var(--ember-wash);border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.lp-appr::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ember)}
+.lp-appr .h{font-family:var(--voice);font-size:16px;padding-left:6px}
+.lp-appr .m{font-family:var(--mono);font-size:11.5px;color:var(--graphite);margin-top:5px;padding-left:6px}
+.lp-appr .f{font-size:11px;color:var(--ember);margin-top:3px;padding-left:6px}
+.lp-appr .act{display:flex;gap:7px;margin-top:12px;padding-left:6px}
+.lp-mini{font-size:12px;font-weight:500;height:31px;padding:0 12px;border-radius:6px;cursor:pointer;border:1px solid transparent}
+.lp-mini.ink{background:var(--ink);color:var(--paper)}.lp-mini.ghost{border-color:var(--hairline-strong);color:var(--graphite);background:transparent}
+.lp-cleared{font-family:var(--voice);font-style:italic;font-size:14px;color:var(--sage);display:flex;align-items:center;gap:8px;animation:fade .3s var(--ease)}
+.lp-cleared span{font-family:var(--mono)}
+.lp-led{display:flex;flex-direction:column;margin-top:14px}
+.lp-r{display:grid;grid-template-columns:44px 12px 1fr;gap:9px;align-items:baseline;font-family:var(--mono);font-size:12px;line-height:1.6;padding:5px 0;border-bottom:1px solid var(--hairline);animation:print .2s var(--ease) both}
+.lp-r .t{color:var(--faint);font-variant-numeric:tabular-nums}.lp-r .k{color:var(--sage)}.lp-r .b{color:var(--ink)}
+.lp-r .b .num{font-variant-numeric:tabular-nums}.lp-r .b .dim{color:var(--graphite)}
+.lp-sec{padding:60px 0;border-top:1px solid var(--hairline)}
+.lp-kick{font-family:var(--voice);font-weight:400;font-size:clamp(27px,4vw,36px);letter-spacing:-.01em;line-height:1.14;text-wrap:balance}
+.lp-lead{font-size:16px;color:var(--graphite);max-width:56ch;margin-top:14px;line-height:1.6}
+.lp-loop{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;margin-top:38px}
+.lp-step .no{font-family:var(--mono);font-size:12px;color:var(--ember);border-bottom:1px solid var(--ember-line);padding-bottom:8px;margin-bottom:12px;display:inline-block}
+.lp-step h3{font-family:var(--voice);font-weight:400;font-size:20px;margin-bottom:6px}
+.lp-step p{font-size:13.5px;color:var(--graphite);line-height:1.55}
+.lp-chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.lp-chip{font-family:var(--mono);font-size:12.5px;color:var(--graphite);border:1px solid var(--hairline-strong);border-radius:7px;padding:6px 12px;background:var(--raise)}
+.lp-chip.more{color:var(--faint);border-style:dashed}
+.lp-tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+.lp-tier{border:1px solid var(--hairline-strong);border-radius:14px;padding:24px;background:var(--raise);display:flex;flex-direction:column;gap:14px}
+.lp-tier.mark{border-color:var(--ember-line);box-shadow:0 0 0 1px var(--ember-line)}
+.lp-tier .nm{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--graphite)}
+.lp-tier .pr{font-family:var(--voice);font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
+.lp-tier .pr span{font-size:15px;color:var(--faint);font-style:italic}
+.lp-tier ul{list-style:none;display:flex;flex-direction:column;gap:9px;font-size:13.5px;color:var(--graphite);padding:0;margin:0}
+.lp-tier li{display:flex;gap:9px}.lp-tier li::before{content:"✓";color:var(--sage);font-family:var(--mono);font-size:12px}
+.lp-tier .lp-btn{justify-content:center;margin-top:auto}
+.lp-final{text-align:center;padding:80px 24px}
+.lp-fh{font-family:var(--voice);font-weight:400;font-size:clamp(30px,5vw,46px);letter-spacing:-.01em;text-wrap:balance}
+.lp-foot{border-top:1px solid var(--hairline);padding:32px 0}
+.lp-foot .lp-in{font-family:var(--mono);font-size:11.5px;color:var(--faint);height:auto}
+.lp-foot a{color:var(--graphite)}.lp-foot a:hover{color:var(--ink)}
+@media (max-width:860px){.lp-hero{grid-template-columns:1fr;gap:40px}}
+@media (max-width:720px){.lp-loop,.lp-tiers{grid-template-columns:1fr}}
+`;
