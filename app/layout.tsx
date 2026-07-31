@@ -1,11 +1,24 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { getUser } from '@/lib/auth';
+import ThemeToggle from './ThemeToggle';
 
 export const metadata: Metadata = {
-  title: 'Cortex — AI Operations Platform',
-  description: 'Describe work in plain English. Your AI team runs it — on triggers, with approvals and full history.',
+  title: 'HiUnicorn — your business, running',
+  description: 'HiUnicorn learns how your company works, then does the repetitive work for you — and asks before anything that matters.',
 };
+
+const NAV = [
+  { href: '/', label: 'Home' },
+  { href: '/build', label: 'Hire' },
+  { href: '/chat', label: 'Ask' },
+  { href: '/discover', label: 'Ideas' },
+  { href: '/skills', label: 'Team' },
+  { href: '/approvals', label: 'Approvals' },
+  { href: '/activity', label: 'Activity' },
+  { href: '/knowledge', label: 'Memory' },
+  { href: '/connections', label: 'Apps' },
+];
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getUser().catch(() => null);
@@ -14,27 +27,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <div className="app">
           <aside className="sidebar">
-            <div className="brand"><span className="dot" /> Cortex</div>
+            <div className="brand"><span className="dot" /> HiUnicorn</div>
             <nav className="nav">
-              <a href="/">Build a skill</a>
-              <a href="/discover">Discover</a>
-              <a href="/skills">Skills</a>
-              <a href="/approvals">Approvals</a>
-              <a href="/activity">Activity</a>
-              <a href="/chat">Ask</a>
-              <a href="/knowledge">Knowledge</a>
-              <a href="/connections">Connections</a>
+              {NAV.map((n) => <a key={n.href} href={n.href}>{n.label}</a>)}
             </nav>
-            <div style={{ marginTop: 'auto', fontSize: 12, color: 'var(--fg-3)' }}>
+            <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px' }}>
+              <ThemeToggle />
               {user ? (
-                <div>
-                  <div style={{ color: 'var(--fg-2)', marginBottom: 6, wordBreak: 'break-all' }}>{user.email}</div>
-                  <form action="/auth/signout" method="post"><button className="btn ghost" style={{ padding: '6px 12px', fontSize: 12 }}>Sign out</button></form>
+                <div style={{ fontSize: 12, color: 'var(--faint)', minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--mono)', color: 'var(--graphite)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                  <form action="/auth/signout" method="post"><button className="btn ghost" style={{ height: 26, padding: '0 10px', fontSize: 11, marginTop: 4 }}>Sign out</button></form>
                 </div>
-              ) : <a href="/login">Sign in</a>}
+              ) : <a href="/login" style={{ fontSize: 13, color: 'var(--graphite)' }}>Sign in</a>}
             </div>
           </aside>
-          {children}
+          <div className="main">{children}</div>
         </div>
       </body>
     </html>
