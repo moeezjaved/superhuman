@@ -15,7 +15,7 @@
 import { inngest, EVENTS } from './client';
 import { store } from '../lib/store';
 import { executeRun } from '../lib/run-engine';
-import { StubToolExecutor } from '../lib/tools';
+import { RealToolExecutor } from '../lib/tools';
 import { cronMatches } from '../lib/cron';
 
 /** Fires scheduled skills automatically. Runs every minute. */
@@ -54,7 +54,7 @@ export const runSkill = inngest.createFunction(
 
     const run = await executeRun(skill, {
       workspaceId: skill.workspaceId,
-      executor: new StubToolExecutor(),
+      executor: new RealToolExecutor(),
       // autonomous: do the safe work, DEFER risky (require_approval) actions to a human
       approve: async () => 'defer',
       simulateWaits: false,

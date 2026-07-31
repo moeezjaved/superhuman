@@ -157,7 +157,8 @@ export async function executeRun(skill: SkillDraft, opts: RunOptions): Promise<R
         runId,
         idempotencyKey: `${runId}:${ord}`,
       };
-      const result = await opts.executor.execute(step.action, step.label, ctx);
+      // hand the executor the action payload if the step carries one, else the label
+      const result = await opts.executor.execute(step.action, step.input ?? step.label, ctx);
       rec.latencyMs = Date.now() - t0;
       rec.costUsd = result.costUsd ?? 0;
       run.costUsd = (run.costUsd ?? 0) + (result.costUsd ?? 0);

@@ -11,6 +11,7 @@
  */
 
 import { getAtomic } from './capabilities';
+import { sendGmail, createGmailDraft, asEmailPayload } from './actions/gmail';
 
 export interface ToolContext {
   workspaceId: string;
@@ -39,6 +40,41 @@ export class StubToolExecutor implements ToolExecutor {
     const diff = describeDiff(action, label, input);
     return { ok: true, diff, output: { simulated: true, action }, costUsd: 0 };
   }
+}
+
+/**
+ * Real executor: performs implemented actions for real (Gmail today), and falls
+ * back to the stub's safe description for anything not yet wired. This is what
+ * runs use in production — irreversible actions only reach here AFTER the
+ * Approvals gate, so a real send is always a human-approved send.
+ */
+export class RealToolExecutor implements ToolExecutor {
+  async execute(action: string, input: unknown, ctx: ToolContext): Promise<ToolResult> {
+    try {
+      if (action === 'gmail.send_draft' || action === 'outlook.send_mail') {
+        const email = asEmailPayload(input);
+        if (!email) return stub(action, input); // no structured payload → don't send garbage; describe instead
+        const r = await sendGmail(ctx.workspaceId, email);
+        return { ok: true, diff: `SENT email to ${email.to} — “${email.subject}”`, output: r, costUsd: 0 };
+      }
+      if (action === 'gmail.create_draft') {
+        const email = asEmailPayload(input);
+        if (!email) return stub(action, input);
+        const r = await createGmailDraft(ctx.workspaceId, email);
+        return { ok: true, diff: `Drafted email to ${email.to} — “${email.subject}”`, output: r, costUsd: 0 };
+      }
+      // not yet implemented for real → safe simulated description (run still completes)
+      return stub(action, input);
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'action failed' };
+    }
+  }
+}
+
+function stub(action: string, input: unknown): ToolResult {
+  const atomic = getAtomic(action);
+  const label = atomic?.label ?? action;
+  return { ok: true, diff: describeDiff(action, label, input), output: { simulated: true, action }, costUsd: 0 };
 }
 
 function describeDiff(action: string, label: string, input: unknown): string {

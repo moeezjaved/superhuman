@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/store';
 import { getWorkspaceId } from '@/lib/auth';
 import { resumeRun } from '@/lib/run-engine';
-import { StubToolExecutor } from '@/lib/tools';
+import { RealToolExecutor } from '@/lib/tools';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const resumed = await resumeRun(skill, run, { stepOrd, decision }, {
     workspaceId: ws,
-    executor: new StubToolExecutor(),
+    executor: new RealToolExecutor(),
     simulateWaits: false,
   });
   await store.saveRun(resumed);

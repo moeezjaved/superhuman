@@ -39,6 +39,7 @@ export const StepSchema = z.object({
   integration: z.string().nullable(), // provider slug or null (compute/ask step)
   // executable extensions (optional — a pure-reasoning step needs none):
   action: z.string().nullable().optional(),        // capability id, MUST exist in registry
+  input: z.any().optional(),                        // action payload (e.g. { to, subject, body }); runtime fills per-run
   approval: z.enum(['auto', 'require_approval', 'deny']).optional(),
   wait: z
     .object({
