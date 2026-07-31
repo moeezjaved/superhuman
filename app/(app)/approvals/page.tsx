@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { ListSkeleton } from '../Skeletons';
 
 type Pending = {
   runId: string;
@@ -62,7 +63,7 @@ export default function ApprovalsPage() {
 
       {note && <div className="warn" style={{ background: 'var(--accent-050)', borderColor: 'var(--accent)', color: 'var(--accent-600)' }}>{note}</div>}
 
-      {loading && <div className="loading">Loading…</div>}
+      {loading && <ListSkeleton rows={2} />}
       {!loading && pending.length === 0 && (
         <div className="preview-empty" style={{ textAlign: 'left' }}>
           Nothing waiting on you. When a skill reaches a step that sends, posts, or deletes,

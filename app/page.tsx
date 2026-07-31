@@ -94,26 +94,30 @@ export default function Landing() {
       </div></section>
 
       <section id="pricing" className="lp-sec"><div className="lp-col">
-        <h2 className="lp-kick">Simple pricing.</h2>
-        <p className="lp-lead">Start free. Only pay once HiUnicorn is saving you real hours.</p>
+        <h2 className="lp-kick">One price. A whole team.</h2>
+        <p className="lp-lead">Every plan gives you a specialist for each part of your business — not one tool, a whole staff. Try any plan free for 14 days.</p>
       </div>
       <div className="lp-col lp-tiers">
         <div className="lp-tier">
-          <div className="nm">Free</div><div className="pr">$0</div>
-          <ul><li>Learns your business</li><li>One teammate</li><li>Daily update &amp; approvals</li><li>Connect one app</li></ul>
-          <a href="/login" className="lp-btn ghost">Start free</a>
+          <div className="nm">Starter</div><div className="pr">$999 <span>/ mo</span></div>
+          <p className="prn">Everything a small team needs to feel the difference right away.</p>
+          <ul><li>5 people on your team</li><li>A specialist for every part of your business</li><li>Everyday usage included</li><li>Connect any app</li><li>24/7 help</li></ul>
+          <a href="/login" className="lp-btn ghost">Start free trial</a>
         </div>
         <div className="lp-tier mark">
-          <div className="nm">Business</div><div className="pr">$149 <span>/ mo</span></div>
-          <ul><li>As many teammates as you need</li><li>Every app</li><li>Your rules &amp; who can approve</li><li>Full history you can export</li></ul>
+          <div className="nm">Team</div><div className="pr">$2,499 <span>/ mo</span></div>
+          <p className="prn">For growing teams who want even more from their AI.</p>
+          <ul><li>10 people on your team</li><li>5× the usage</li><li>Share teammates across your company</li><li>Connect any app</li><li>Private 24/7 support</li></ul>
           <a href="/login" className="lp-btn ink">Start free trial</a>
         </div>
         <div className="lp-tier">
-          <div className="nm">Bigger teams</div><div className="pr">Let’s talk</div>
-          <ul><li>Company sign-in (SSO)</li><li>Read-only auditor access</li><li>Where your data lives</li><li>Dedicated help</li></ul>
-          <a href="/login" className="lp-btn ghost">Talk to us</a>
+          <div className="nm">Enterprise</div><div className="pr">Contact sales</div>
+          <p className="prn">Built around your size, your data, and your security.</p>
+          <ul><li>Unlimited people</li><li>Custom-built specialists</li><li>Company sign-in (SSO)</li><li>Security reviews (SOC 2, HIPAA, PCI)</li><li>Choose where your data lives</li></ul>
+          <a href="/login" className="lp-btn ghost">Contact sales</a>
         </div>
-      </div></section>
+      </div>
+      <p className="lp-col" style={{ marginTop: 18, fontSize: 13, color: 'var(--faint)', textAlign: 'center' }}>Switch to annual billing and save 17%.</p></section>
 
       <div className="lp-wrap lp-final"><div className="lp-col">
         <h2 className="lp-fh">Give yourself your evenings back.</h2>
@@ -195,6 +199,7 @@ const CSS = `
 .lp-tier .nm{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--graphite)}
 .lp-tier .pr{font-family:var(--voice);font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
 .lp-tier .pr span{font-size:15px;color:var(--faint);font-style:italic}
+.lp-tier .prn{font-size:13px;color:var(--graphite);line-height:1.5;margin:-4px 0 2px}
 .lp-tier ul{list-style:none;display:flex;flex-direction:column;gap:9px;font-size:13.5px;color:var(--graphite);padding:0;margin:0}
 .lp-tier li{display:flex;gap:9px}.lp-tier li::before{content:"✓";color:var(--sage);font-family:var(--mono);font-size:12px}
 .lp-tier .lp-btn{justify-content:center;margin-top:auto}

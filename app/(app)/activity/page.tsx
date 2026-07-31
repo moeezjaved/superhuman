@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Run } from '@/lib/types';
+import { ListSkeleton } from '../Skeletons';
 
 export default function ActivityPage() {
   const [runs, setRuns] = useState<Run[]>([]);
@@ -36,7 +37,7 @@ export default function ActivityPage() {
       <h1>Everything your team has done</h1>
       <p className="sub">A full record of every job your teammates have handled — with a receipt for each one. Updates on its own.</p>
 
-      {loading && <div className="loading">Loading…</div>}
+      {loading && <ListSkeleton rows={4} />}
       {!loading && runs.length === 0 && (
         <div className="empty">
           <strong>Nothing here yet.</strong>

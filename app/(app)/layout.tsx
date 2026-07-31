@@ -9,6 +9,7 @@ const NAV = [
   { href: '/skills', label: 'Team' },
   { href: '/approvals', label: 'Approvals' },
   { href: '/activity', label: 'Activity' },
+  { href: '/reports', label: 'Reports' },
   { href: '/knowledge', label: 'Memory' },
   { href: '/connections', label: 'Apps' },
 ];
@@ -22,7 +23,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <nav className="nav">
           {NAV.map((n) => <a key={n.href} href={n.href}>{n.label}</a>)}
         </nav>
-        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px' }}>
+        <div className="nav-sep" style={{ marginTop: 'auto' }} />
+        <nav className="nav"><a href="/settings">Settings</a></nav>
+        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px' }}>
           <ThemeToggle />
           {user ? (
             <div style={{ fontSize: 12, color: 'var(--faint)', minWidth: 0 }}>

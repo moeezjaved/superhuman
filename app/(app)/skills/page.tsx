@@ -2,17 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import type { SkillDraft } from '@/lib/types';
+import { ListSkeleton } from '../Skeletons';
 
 type Saved = SkillDraft & { id: string; createdAt: string; enabled: boolean };
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Saved[]>([]);
+  const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
 
   async function load() {
     const r = await fetch('/api/skills', { cache: 'no-store' });
     const d = await r.json();
     setSkills(d.skills || []);
+    setLoading(false);
   }
   useEffect(() => { load(); }, []);
 
@@ -34,7 +37,9 @@ export default function SkillsPage() {
       <p className="sub">The teammates you’ve hired. Each one does its job on its own — you can also ask any of them to do it right now.</p>
       {msg && <div className="warn" style={{ background: 'var(--ember-wash)', borderColor: 'var(--ember-line)', color: 'var(--ember)' }}>{msg}</div>}
 
-      {skills.length === 0 && (
+      {loading && <ListSkeleton rows={3} />}
+
+      {!loading && skills.length === 0 && (
         <div className="empty">
           <strong>No teammates yet.</strong>
           <a href="/build">Hire your first one</a> — describe a job in plain words and HiUnicorn turns it into a teammate who handles it for you.
