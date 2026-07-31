@@ -210,4 +210,12 @@ const CSS = `
 .lp-foot a{color:var(--graphite)}.lp-foot a:hover{color:var(--ink)}
 @media (max-width:860px){.lp-hero{grid-template-columns:1fr;gap:40px}}
 @media (max-width:720px){.lp-loop,.lp-tiers{grid-template-columns:1fr}}
+@media (max-width:600px){
+  .lp-in{padding:0 18px}
+  .lp-links{gap:12px}
+  .lp-links a:not(.lp-btn){display:none}
+  .lp-btn.sm{padding:0 14px}
+  .lp-hero{padding-top:40px}
+  .lp-sub{max-width:none}
+}
 `;
