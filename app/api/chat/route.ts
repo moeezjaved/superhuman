@@ -12,7 +12,11 @@ export async function POST(req: NextRequest) {
   const ws = await getWorkspaceId();
   const { messages } = (await req.json()) as { messages: { role: string; content: string }[] };
   const lastUser = [...messages].reverse().find((m) => m.role === 'user')?.content ?? '';
-  const hits = await retrieve(lastUser, 5, ws);
+  // Retrieve wide, then keep only genuinely relevant chunks. A weak match is
+  // worse than none — it invites the model to half-answer on noise. If nothing
+  // clears the bar, the prompt gets no context and Cortex says it doesn't know.
+  const MIN_SCORE = 0.2;
+  const hits = (await retrieve(lastUser, 8, ws)).filter((h) => h.score >= MIN_SCORE).slice(0, 5);
   const system = buildRuntimeSystemPrompt(hits);
   const result = streamText({
     model: openai('gpt-4o'),
